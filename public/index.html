@@ -1,0 +1,93 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="description" content="CSCI E-90 Final Project">
+    <meta name="author" content="Matthew Bullen, bullen@g.harvard.edu">
+    <meta name="google-signin-client_id" content="224837193578-v0f375lmnj50ojolvf25pbbprlc8ckfp.apps.googleusercontent.com">
+
+    <link rel="shortcut icon" href="logo.png">
+
+    <title>CSCI E-90 Final Project</title>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Lato:400" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Raleway:600" rel="stylesheet" type="text/css">
+
+	<!-- D3.js v. 4 with a word cloud plugin -->
+    <script src="d3.v4.min.js"> </script>
+    <script src="d3.layout.cloud.js"> </script>
+
+    <!-- Google front-end client API -->
+    <script src="https://apis.google.com/js/client.js"> </script>
+
+</head>
+
+<!-- This app uses React.js, and since the overall structure is fairly flat, there's no need for a separate CSS file here. -->
+<body style="margin: 0; padding: 0; font-family: Lato, Arial, sans-serif; background-color: #d5d5d5;">
+
+	<!-- Load data from BigQuery. We want to do this as early in the process as we can, since it's an async query. 
+		 This is also a prototype for a serverless or "headless" app. There's no back end doing this query for the 
+		 front end view, so the simplest place to put it is at the very beginning of the view load process. 
+		 In a more complicated app, there could be a specific controller component, but that would be excessive here. -->
+	<script id="runBigQuerySearch">
+
+		window.onload = function() {
+
+			// This is a temporary storage object for the BigQuery results.
+			window.app = {};
+
+			// Pass BigQuery authentication.
+			gapi.auth.authorize({
+						"client_id": "224837193578-v0f375lmnj50ojolvf25pbbprlc8ckfp.apps.googleusercontent.com",
+						"scope": "https://www.googleapis.com/auth/bigquery"
+					},
+					
+					// Load the BigQuery API module.
+					function() {
+						gapi.client.load("bigquery", "v2").then(function() {
+							return gapi;
+						}).then(function(gapi) {
+							console.log("\nApp preload: gapi BigQuery component loaded:", gapi);
+							
+							// This assembles a rolling date formatted for the GDELT table's date formatting, going back 2 days from the current date.
+							// Since this is only done once, and given gapi's finicky scoping, there's really no need to put it in a separate function.
+							// Source: https://stackoverflow.com/questions/3552461/how-to-format-a-javascript-date
+							var d = new Date();
+							var day = ("0" + (d.getDate() - 2)).slice(-2);
+							var month = ("0" + (d.getMonth() + 1)).slice(-2);
+							var year = d.getFullYear();
+							var dateString = year + month + day + "000000";
+							window.app.date = month + "/" + day + "/" + year;
+							console.log("\nApp preload: script#runBiqQuerySearch dateString:", dateString);
+
+							// Run the BigQuery job. The SQL search string is relatively broad, since the results are string-aggregated
+							// by column, anyway, and the app will also use AWS Lambda for more detailed munging and processing.
+							gapi.client.bigquery.jobs.query({
+								"projectId": "224837193578",
+								"timeoutMs": "30000",
+								"query": "SELECT DocumentIdentifier, V2Persons, V2Themes FROM [gdelt-bq:gdeltv2.iatvgkg] WHERE DATE > " + dateString + " LIMIT 1250"
+							}).then(function(json) {
+								console.log("\nApp preload: BigQuery JSON result:", json);
+								
+								// Drop the retrieved data into the temporary storage object.
+								window.app.json = json;
+							});
+						});
+					});
+		};
+
+	</script>
+
+	<!-- React.js view root element -->
+	<div id="root"> </div>
+
+</body>
+
+</html>

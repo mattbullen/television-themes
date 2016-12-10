@@ -1,0 +1,27 @@
+{
+  "name": "final",
+  "version": "1.0.0",
+  "private": true,
+  "homepage": "",
+  "devDependencies": {
+    "case-sensitive-paths-webpack-plugin": "^1.1.4",
+    "react-scripts": "0.7.0"
+  },
+  "dependencies": {
+    "es6-promise": "^4.0.5",
+    "isomorphic-fetch": "^2.2.1",
+    "material-ui": "^0.16.4",
+    "react": "^15.4.0",
+    "react-addons-css-transition-group": "^15.4.0",
+    "react-addons-shallow-compare": "^15.4.0",
+    "react-addons-update": "^15.4.0",
+    "react-dom": "^15.4.0",
+    "react-tap-event-plugin": "^2.0.1"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  }
+}
